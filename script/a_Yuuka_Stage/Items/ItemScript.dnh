@@ -1,0 +1,112 @@
+task SeasoningItem(x, y, a, type)
+{
+	let itemID = 0;
+	let rect = [0, 0, 0, 0];
+	let b = 0;
+
+	alternative(type)
+	case("Petal")
+	{
+		itemID = 1;
+		rect = [0, 0, 16, 16];
+	}
+	case("Leaf"){
+		itemID = 2;
+		rect = [16, 0, 32, 16];
+	}
+	others
+	{
+		RaiseError("Invalid item ID");
+	}
+
+	let anim = ObjPrim_Create(OBJ_SPRITE_2D);
+	Obj_SetRenderPriorityI(anim, 60);
+	ObjPrim_SetTexture(anim, GetCurrentScriptDirectory ~ "./item.png");
+	ObjSprite2D_SetSourceRect(anim, rect[0], rect[1], rect[2], rect[3]);
+	ObjSprite2D_SetDestCenter(anim);
+	ObjRender_SetPosition(anim, x, y, 0);
+	collect(anim);
+	bordercollect(anim);
+
+	loop(10)
+	{
+		let rad = rand(2, 5);
+		ObjRender_SetPosition(anim, ObjRender_GetX(anim) + cos(a)* rad, ObjRender_GetY(anim) + sin(a)* rad, 2);
+		loop(2){ yield; }
+	}
+	while(!Obj_IsDeleted(anim))
+	{
+		ObjRender_SetPosition(anim, ObjRender_GetX(anim), ObjRender_GetY(anim) + 2, 1);
+		if(ObjRender_GetX(anim) < -3 || ObjRender_GetX(anim) > 387 || ObjRender_GetY(anim) < -3 || ObjRender_GetY(anim) > 451){ Obj_Delete(anim); }
+		yield; 
+	}
+	
+
+
+	task collect(obj)
+	{
+		while(b == 0)
+		{
+			let ix = ObjRender_GetX(obj);
+			let iy = ObjRender_GetY(obj);
+
+			let px = GetPlayerX();
+			let py = GetPlayerY();
+
+			let angle = atan2(py - iy, px - ix);
+
+			let rad = (px - ix) / cos(angle);
+			
+			if(rad < 60)
+			{
+				b = 1;
+				notice(anim, rad);
+				task notice(obj, r)
+				{
+					let c = r / 15;
+					loop(15)
+					{
+						ObjRender_SetPosition(obj, GetPlayerX() + cos(angle + 180) * r, GetPlayerY() + sin(angle + 180) * r, 1);
+						r -= c;
+						yield;
+					}
+					LoadSound(GetCurrentScriptDirectory ~ "./item.ogg");
+					PlaySE(GetCurrentScriptDirectory ~ "./item.ogg");
+					if(type == "Petal"){ NotifyEventAll(EV_USER + 1, 0); }
+					else if(type == "Leaf"){ NotifyEventAll(EV_USER + 2, 0); }
+					Obj_Delete(obj);
+				}
+			}
+			else{ yield; }
+			yield;
+		}
+	}
+
+	task bordercollect(obj)
+	{
+		while(GetPlayerY() > 200){ yield; }
+
+		let ix = ObjRender_GetX(obj);
+		let iy = ObjRender_GetY(obj);
+
+		let px = GetPlayerX();
+		let py = GetPlayerY();
+
+		let angle = atan2(py - iy, px - ix);
+
+		let r = (px - ix) / cos(angle);
+
+		let c = r / 15;
+		loop(15)
+		{
+			ObjRender_SetPosition(obj, GetPlayerX() + cos(angle + 180) * r, GetPlayerY() + sin(angle + 180) * r, 1);
+			r -= c;
+			yield;
+		}
+		LoadSound(GetCurrentScriptDirectory ~ "./item.ogg");
+		PlaySE(GetCurrentScriptDirectory ~ "./item.ogg");
+		if(type == "Petal"){ NotifyEventAll(EV_USER + 1, 0); }
+		else if(type == "Leaf"){ NotifyEventAll(EV_USER + 2, 0); }
+		Obj_Delete(obj);
+	}
+}

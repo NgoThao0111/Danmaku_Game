@@ -1,0 +1,1775 @@
+#include"./../Items/ItemScript.dnh"
+#include"./../ShotData/AllStarShot_Const.dnh"
+#include"./RenderFairy.txt"
+
+task CreateSTGEnemy1(x, y, type, angle, c)
+{
+	let count = 0;
+	let Xmin = -32;
+	let Xmax = GetStgFrameWidth + 32;
+	let Ymin = -32; 
+	let Ymax = GetStgFrameHeight + 32;
+	let objSTGE;
+	TInitialize;
+
+	task TInitialize
+	{
+        	objSTGE = ObjEnemy_Create(OBJ_ENEMY);
+        	ObjEnemy_Regist(objSTGE);
+        	ObjEnemy_SetLife(objSTGE, 60);
+		renderFairyD(objSTGE, type);
+        	ObjMove_SetPosition(objSTGE, x, y);
+        	ObjMove_SetAngle(objSTGE, angle);
+       		ObjMove_SetSpeed(objSTGE, 2.75);
+       		//TDrawLoop(objSTGE);
+        	TMainLoop;
+        	TFinalize;
+    	}
+	task TMainLoop 
+	{
+		while(ObjEnemy_GetInfo(objSTGE, INFO_LIFE) > 0)
+		{
+            		ObjEnemy_SetIntersectionCircleToShot(objSTGE, ObjMove_GetX(objSTGE), ObjMove_GetY(objSTGE), 32);
+			if(count == c)
+			{
+				TShot; 
+				count = 12;
+			}
+            		if (ObjMove_GetX(objSTGE) < Xmin || ObjMove_GetX(objSTGE) > Xmax || ObjMove_GetY(objSTGE) < Ymin || ObjMove_GetY(objSTGE) > Ymax) { ObjEnemy_SetLife(objSTGE, -1000); }
+			let ex = ObjMove_GetX(objSTGE);
+			let ey = ObjMove_GetY(objSTGE);
+
+			let px = GetPlayerX();
+			let py = GetPlayerY();
+
+			let a = atan2(py - ey, px - ex);
+
+			let rad = (px - ex) / cos(a);
+			
+			if(rad < 60){ ObjEnemy_SetLife(objSTGE, -1000); } 
+            		count++;
+           		yield;
+            	}
+		task TShot
+		{
+			if(!Obj_IsDeleted(objSTGE))
+			{
+			let ex = ObjMove_GetX(objSTGE);
+			let ey = ObjMove_GetY(objSTGE);
+
+			let angle = rand(70, 110);
+			let ang = 0;
+
+			let obj = CreateShotA1(ex, ey, rand(6, 10) * 0.25, angle, 4000, 5);
+			loop(5)
+			{
+				Petal(obj, angle, ang);
+				angle += 72;
+				ang += 72;
+			}
+			task Petal(obj, angle, ang)
+			{
+				let obj1 = CreateShotA1(ObjMove_GetX(obj) + cos(angle) * 6, ObjMove_GetY(obj) + sin(angle) * 6, ObjMove_GetSpeed(obj), angle, 53, 5);
+				while(!Obj_IsDeleted(obj))
+				{
+					ObjMove_SetDestAtFrame(obj1, ObjMove_GetX(obj) + cos(angle) * 6, ObjMove_GetY(obj) + sin(angle) * 6, 1);
+					ObjRender_SetAngleZ(obj1, ang);
+					angle += 2;
+					ang += 2;
+					yield;
+				}
+			}
+			}
+		}
+
+        }
+    	task TFinalize 
+	{
+        	while(ObjEnemy_GetInfo(objSTGE, INFO_LIFE) > 0) {yield;}
+		if(ObjMove_GetX(objSTGE) < Xmin || ObjMove_GetX(objSTGE) > Xmax || ObjMove_GetY(objSTGE) < Ymin || ObjMove_GetY(objSTGE) > Ymax) { yield; }
+		else
+		{
+			LoadSound(GetCurrentScriptDirectory ~ "./../se/Enep1.wav");
+			PlaySE(GetCurrentScriptDirectory ~ "./../se/Enep1.wav");
+			EnemyExplosionEffect(objSTGE, [255, 100, 150], [255, 100, 150]);
+			AddScore(100);
+			loop(1)
+			{
+				SeasoningItem(ObjMove_GetX(objSTGE), ObjMove_GetY(objSTGE), rand(260, 280), "Petal");
+				SeasoningItem(ObjMove_GetX(objSTGE), ObjMove_GetY(objSTGE), rand(260, 280), "Leaf");
+			}
+		}
+        	Obj_Delete(objSTGE);
+    	}
+}
+
+task CreateSTGEnemy2(x, y, type, angle)
+{
+	let count = 0;
+	let Xmin = -32;
+	let Xmax = GetStgFrameWidth + 32;
+	let Ymin = -32; 
+	let Ymax = GetStgFrameHeight + 32;
+	let objSTGE;
+	TInitialize;
+
+	task TInitialize
+	{
+        	objSTGE = ObjEnemy_Create(OBJ_ENEMY);
+        	ObjEnemy_Regist(objSTGE);
+        	ObjEnemy_SetLife(objSTGE, 60 * 1.5);
+		renderFairyB(objSTGE, type);
+        	ObjMove_SetPosition(objSTGE, x, y);
+		TMove;
+       		//TDrawLoop(objSTGE);
+        	TMainLoop;
+        	TFinalize;
+    	}
+	task TMove
+	{
+		ObjMove_SetSpeed(objSTGE, 2.5);
+		ObjMove_SetAngle(objSTGE, 90);
+		loop(20){ yield; }
+		ObjMove_SetSpeed(objSTGE, 0);
+		loop(40){ yield; }
+		ObjMove_SetAngle(objSTGE, angle);
+		ObjMove_SetSpeed(objSTGE, 2.5);
+	}
+	task TMainLoop 
+	{
+		while(ObjEnemy_GetInfo(objSTGE, INFO_LIFE) > 0)
+		{
+            		ObjEnemy_SetIntersectionCircleToShot(objSTGE, ObjMove_GetX(objSTGE), ObjMove_GetY(objSTGE), 32);
+			if(count == 60)
+			{
+				TShot; 
+				count = -30;
+			}
+            		if (ObjMove_GetX(objSTGE) < Xmin || ObjMove_GetX(objSTGE) > Xmax || ObjMove_GetY(objSTGE) < Ymin || ObjMove_GetY(objSTGE) > Ymax) { ObjEnemy_SetLife(objSTGE, -1000); }
+
+			let ex = ObjMove_GetX(objSTGE);
+			let ey = ObjMove_GetY(objSTGE);
+
+			let px = GetPlayerX();
+			let py = GetPlayerY();
+
+			let a = atan2(py - ey, px - ex);
+
+			let rad = (px - ex) / cos(a);
+			
+			if(rad < 60){ ObjEnemy_SetLife(objSTGE, -1000); }
+            		count++;
+           		yield;
+            	}
+		task TShot
+		{
+			if(!Obj_IsDeleted(objSTGE))
+			{
+			let ex = ObjMove_GetX(objSTGE);
+			let ey = ObjMove_GetY(objSTGE);
+
+			let px = GetPlayerX();
+			let py = GetPlayerY();
+			let angle1 = atan2(py - ey, px - ex);
+			loop(5)
+			{
+				loop(6)
+				{
+					let obj = CreateShotA1(ex, ey, 2, angle1, 293, 2);
+					ObjMove_SetAngularVelocity(obj, 0.3);
+					angle1 += 360 / 6;
+				}
+				loop(6)
+				{
+					let obj = CreateShotA1(ex, ey, 2, angle1 + 20, 293, 2);
+					ObjMove_SetAngularVelocity(obj, -0.3);
+					angle1 += 360 / 6;
+				}
+				loop(5){ yield; }
+				angle1 += 13;
+
+			}
+			}
+		}
+
+        }
+    	task TFinalize 
+	{
+        	while(ObjEnemy_GetInfo(objSTGE, INFO_LIFE) > 0) {yield;}
+		if(ObjMove_GetX(objSTGE) < Xmin || ObjMove_GetX(objSTGE) > Xmax || ObjMove_GetY(objSTGE) < Ymin || ObjMove_GetY(objSTGE) > Ymax) { yield; }
+		else
+		{
+			LoadSound(GetCurrentScriptDirectory ~ "./../se/Enep1.wav");
+			PlaySE(GetCurrentScriptDirectory ~ "./../se/Enep1.wav");
+			EnemyExplosionEffect(objSTGE, [255, 100, 150], [255, 100, 150]);
+			AddScore(500);
+			loop(5)
+			{
+				SeasoningItem(ObjMove_GetX(objSTGE), ObjMove_GetY(objSTGE), rand(260, 280), "Petal");
+				SeasoningItem(ObjMove_GetX(objSTGE), ObjMove_GetY(objSTGE), rand(260, 280), "Leaf");
+			}
+		}
+        	Obj_Delete(objSTGE);
+	}
+}
+
+task CreateSTGEnemy3(x, y, angle, c)
+{
+	let count = 0;
+	let Xmin = -32;
+	let Xmax = GetStgFrameWidth + 32;
+	let Ymin = -32; 
+	let Ymax = GetStgFrameHeight + 32;
+	let objSTGE;
+	TInitialize;
+
+	task TInitialize
+	{
+        	objSTGE = ObjEnemy_Create(OBJ_ENEMY);
+        	ObjEnemy_Regist(objSTGE);
+        	ObjEnemy_SetLife(objSTGE, 60);
+		renderFairyE(objSTGE, 6);
+        	ObjMove_SetPosition(objSTGE, x, y);
+        	TShot;
+       		ObjMove_SetSpeed(objSTGE, 0);
+       		//TDrawLoop(objSTGE);
+        	TMainLoop;
+        	TFinalize;
+    	}
+	task TMainLoop 
+	{
+		while(ObjEnemy_GetInfo(objSTGE, INFO_LIFE) > 0)
+		{
+            		ObjEnemy_SetIntersectionCircleToShot(objSTGE, ObjMove_GetX(objSTGE), ObjMove_GetY(objSTGE), 32);
+            		if (ObjMove_GetX(objSTGE) < Xmin || ObjMove_GetX(objSTGE) > Xmax || ObjMove_GetY(objSTGE) < Ymin || ObjMove_GetY(objSTGE) > Ymax) { ObjEnemy_SetLife(objSTGE, -1000); }
+			let ex = ObjMove_GetX(objSTGE);
+			let ey = ObjMove_GetY(objSTGE);
+
+			let px = GetPlayerX();
+			let py = GetPlayerY();
+
+			let a = atan2(py - ey, px - ex);
+
+			let rad = (px - ex) / cos(a);
+			
+			if(rad < 60){ ObjEnemy_SetLife(objSTGE, -1000); }
+            		count++;
+           		yield;
+            	}
+	}
+	task TShot
+	{
+		loop(c){ yield; }
+
+		let ex = ObjMove_GetX(objSTGE);
+		let ey = ObjMove_GetY(objSTGE);
+
+		loop(5)
+		{
+			let px = GetPlayerX();
+			let py = GetPlayerY();
+			let sp = 2.3;
+			loop(5)
+			{
+				let angle1 = atan2(py - ey, px - ex);
+
+				if(!Obj_IsDeleted(objSTGE))
+				{
+
+					loop(5)
+					{
+						CreateShotA1(ex, ey, sp, angle1 - 40, 37, 2);
+						angle1 += 20;
+					}
+				}
+				loop(1){ yield; }
+				sp -= 0.15;
+			}
+			loop(60){ yield; }
+		}
+		ObjMove_SetAngle(objSTGE, angle);
+		ObjMove_SetSpeed(objSTGE, 2.5);
+	}
+    	task TFinalize 
+	{
+        	while(ObjEnemy_GetInfo(objSTGE, INFO_LIFE) > 0) {yield;}
+		if(ObjMove_GetX(objSTGE) < Xmin || ObjMove_GetX(objSTGE) > Xmax || ObjMove_GetY(objSTGE) < Ymin || ObjMove_GetY(objSTGE) > Ymax) { yield; }
+		else
+		{
+			LoadSound(GetCurrentScriptDirectory ~ "./../se/Enep1.wav");
+			PlaySE(GetCurrentScriptDirectory ~ "./../se/Enep1.wav");
+			EnemyExplosionEffect(objSTGE, [255, 100, 150], [255, 100, 150]);
+			AddScore(200);
+			loop(2)
+			{
+				SeasoningItem(ObjMove_GetX(objSTGE), ObjMove_GetY(objSTGE), rand(260, 280), "Petal");
+				SeasoningItem(ObjMove_GetX(objSTGE), ObjMove_GetY(objSTGE), rand(260, 280), "Leaf");
+			}
+		}
+        	Obj_Delete(objSTGE);
+    	}
+}
+
+task CreateSTGEnemy4(x, y, type, c)
+{
+	let count = 0;
+	let Xmin = -32;
+	let Xmax = GetStgFrameWidth + 32;
+	let Ymin = -32; 
+	let Ymax = GetStgFrameHeight + 32;
+	let objSTGE;
+	TInitialize;
+
+	task TInitialize
+	{
+        	objSTGE = ObjEnemy_Create(OBJ_ENEMY);
+        	ObjEnemy_Regist(objSTGE);
+        	ObjEnemy_SetLife(objSTGE, 60);
+		renderFairyA(objSTGE, type);
+        	ObjMove_SetPosition(objSTGE, x, y);
+        	TShot;
+       		ObjMove_SetSpeed(objSTGE, 2.5);
+		ObjMove_SetAngle(objSTGE, 90);
+       		//TDrawLoop(objSTGE);
+        	TMainLoop;
+        	TFinalize;
+    	}
+	task TMainLoop 
+	{
+		while(ObjEnemy_GetInfo(objSTGE, INFO_LIFE) > 0)
+		{
+            		ObjEnemy_SetIntersectionCircleToShot(objSTGE, ObjMove_GetX(objSTGE), ObjMove_GetY(objSTGE), 32);
+            		if (ObjMove_GetX(objSTGE) < Xmin || ObjMove_GetX(objSTGE) > Xmax || ObjMove_GetY(objSTGE) < Ymin || ObjMove_GetY(objSTGE) > Ymax) { ObjEnemy_SetLife(objSTGE, -1000); }
+
+			let ex = ObjMove_GetX(objSTGE);
+			let ey = ObjMove_GetY(objSTGE);
+
+			let px = GetPlayerX();
+			let py = GetPlayerY();
+
+			let a = atan2(py - ey, px - ex);
+
+			let rad = (px - ex) / cos(a);
+			
+			if(rad < 60){ ObjEnemy_SetLife(objSTGE, -1000); }
+            		count++;
+           		yield;
+            	}
+	}
+	task TShot
+	{
+		loop(30){ yield; }
+
+		ObjMove_SetSpeed(objSTGE, 0);
+		loop(c){ yield; }
+
+		let ex = ObjMove_GetX(objSTGE);
+		let ey = ObjMove_GetY(objSTGE);
+
+		loop(5)
+		{
+			let px = GetPlayerX();
+			let py = GetPlayerY();
+			let sp = 2;
+			loop(5)
+			{
+				let angle1 = atan2(py - ey, px - ex);
+				if(!Obj_IsDeleted(objSTGE))
+				{
+					loop(5)
+					{
+						CreateShotA1(ex, ey, sp, angle1 - 40, 85, 2);
+						angle1 += 20;
+					}
+				}
+				loop(3){ yield; }
+				sp -= 0.2;
+			}
+			loop(30){ yield; }
+		}
+
+		ObjMove_SetSpeed(objSTGE, 2.5);
+
+		loop(5)
+		{
+			let ex = ObjMove_GetX(objSTGE);
+			let ey = ObjMove_GetY(objSTGE);
+
+			let px = GetPlayerX();
+			let py = GetPlayerY();
+
+			let sp = 2;
+			loop(5)
+			{
+				let angle1 = atan2(py - ey, px - ex);
+				if(!Obj_IsDeleted(objSTGE))
+				{
+					loop(5)
+					{
+						CreateShotA1(ex, ey, sp, angle1 - 30, 85, 2);
+						angle1 += 15;
+					}
+				}
+				loop(3){ yield; }
+				sp -= 0.1;
+			}
+			loop(30){ yield; }
+		}
+	}
+
+    	task TFinalize 
+	{
+        	while(ObjEnemy_GetInfo(objSTGE, INFO_LIFE) > 0) {yield;}
+		if(ObjMove_GetX(objSTGE) < Xmin || ObjMove_GetX(objSTGE) > Xmax || ObjMove_GetY(objSTGE) < Ymin || ObjMove_GetY(objSTGE) > Ymax) { yield; }
+		else
+		{
+			LoadSound(GetCurrentScriptDirectory ~ "./../se/Enep1.wav");
+			PlaySE(GetCurrentScriptDirectory ~ "./../se/Enep1.wav");
+			EnemyExplosionEffect(objSTGE, [255, 100, 150], [255, 100, 150]);
+			AddScore(300);
+			loop(3)
+			{
+				SeasoningItem(ObjMove_GetX(objSTGE), ObjMove_GetY(objSTGE), rand(260, 280), "Petal");
+				SeasoningItem(ObjMove_GetX(objSTGE), ObjMove_GetY(objSTGE), rand(260, 280), "Leaf");
+			}
+		}
+        	Obj_Delete(objSTGE);
+    	}
+}
+
+task CreateSTGEnemy5(x, y, angle)
+{
+	let count = 0;
+	let Xmin = -32;
+	let Xmax = GetStgFrameWidth + 32;
+	let Ymin = -32; 
+	let Ymax = GetStgFrameHeight + 32;
+	let objSTGE;
+	TInitialize;
+
+	task TInitialize
+	{
+        	objSTGE = ObjEnemy_Create(OBJ_ENEMY);
+        	ObjEnemy_Regist(objSTGE);
+        	ObjEnemy_SetLife(objSTGE, 180);
+		renderFairyC(objSTGE);
+        	ObjMove_SetPosition(objSTGE, x, y);
+		TMove;
+       		//TDrawLoop(objSTGE);
+        	TMainLoop;
+        	TFinalize;
+    	}
+	task TMove
+	{
+		ObjMove_SetSpeed(objSTGE, 2.5);
+		ObjMove_SetAngle(objSTGE, 90);
+		loop(20){ yield; }
+		ObjMove_SetSpeed(objSTGE, 0);
+		loop(80){ yield; }
+		ObjMove_SetAngle(objSTGE, angle);
+		ObjMove_SetSpeed(objSTGE, 2.5);
+	}
+	task TMainLoop 
+	{
+		while(ObjEnemy_GetInfo(objSTGE, INFO_LIFE) > 0)
+		{
+            		ObjEnemy_SetIntersectionCircleToShot(objSTGE, ObjMove_GetX(objSTGE), ObjMove_GetY(objSTGE), 32);
+			if(count == 90)
+			{
+				TShot; 
+				count = 30;
+			}
+            		if (ObjMove_GetX(objSTGE) < Xmin || ObjMove_GetX(objSTGE) > Xmax || ObjMove_GetY(objSTGE) < Ymin || ObjMove_GetY(objSTGE) > Ymax) { ObjEnemy_SetLife(objSTGE, -1000); }
+
+			let ex = ObjMove_GetX(objSTGE);
+			let ey = ObjMove_GetY(objSTGE);
+
+			let px = GetPlayerX();
+			let py = GetPlayerY();
+
+			let a = atan2(py - ey, px - ex);
+
+			let rad = (px - ex) / cos(a);
+			
+			if(rad < 60){ ObjEnemy_SetLife(objSTGE, -1000); }
+            		count++;
+           		yield;
+            	}
+		task TShot
+		{
+			if(!Obj_IsDeleted(objSTGE))
+			{
+		let ex = ObjMove_GetX(objSTGE);
+		let ey = ObjMove_GetY(objSTGE);
+
+		let px = GetPlayerX();
+		let py = GetPlayerY();
+
+		let angle1 = atan2(py - ey, px - ex);
+		let angle = angle1;
+		let sp = 2.5;
+
+		loop(15)
+		{
+			loop(5)
+			{
+				CreateShotA1(ex, ey, sp, angle1, 6, 10);
+				CreateShotA1(ex, ey, sp, angle, 6, 10);
+				angle1 += 360 / 5;
+				angle += 360 / 5;
+			}
+			angle1 += 5;
+			angle -= 5;
+			sp -= 0.1;
+			loop(3){ yield; }
+		}
+			}
+		}
+
+        }
+    	task TFinalize 
+	{
+        	while(ObjEnemy_GetInfo(objSTGE, INFO_LIFE) > 0) {yield;}
+		if(ObjMove_GetX(objSTGE) < Xmin || ObjMove_GetX(objSTGE) > Xmax || ObjMove_GetY(objSTGE) < Ymin || ObjMove_GetY(objSTGE) > Ymax) { yield; }
+		else
+		{
+			LoadSound(GetCurrentScriptDirectory ~ "./../se/Enep1.wav");
+			PlaySE(GetCurrentScriptDirectory ~ "./../se/Enep1.wav");
+			EnemyExplosionEffect(objSTGE, [255, 100, 150], [255, 100, 150]);
+			AddScore(1000);
+			loop(10)
+			{
+				SeasoningItem(ObjMove_GetX(objSTGE), ObjMove_GetY(objSTGE), rand(260, 280), "Petal");
+				SeasoningItem(ObjMove_GetX(objSTGE), ObjMove_GetY(objSTGE), rand(260, 280), "Leaf");
+			}
+		}
+        	Obj_Delete(objSTGE);
+	}
+}
+
+
+task CreateSTGEnemy6(x, y, angle)
+{
+	let count = 0;
+	let Xmin = -32;
+	let Xmax = GetStgFrameWidth + 32;
+	let Ymin = -32; 
+	let Ymax = GetStgFrameHeight + 32;
+	let objSTGE;
+	TInitialize;
+
+	task TInitialize
+	{
+        	objSTGE = ObjEnemy_Create(OBJ_ENEMY);
+        	ObjEnemy_Regist(objSTGE);
+        	ObjEnemy_SetLife(objSTGE, 60);
+		renderFairyF(objSTGE, 3);
+        	ObjMove_SetPosition(objSTGE, x, y);
+        	ObjMove_SetAngle(objSTGE, 90);
+       		ObjMove_SetSpeed(objSTGE, 3.5);
+       		//TDrawLoop(objSTGE);
+		TMove;
+        	TMainLoop;
+        	TFinalize;
+    	}
+
+	task TMainLoop 
+	{
+		while(ObjEnemy_GetInfo(objSTGE, INFO_LIFE) > 0)
+		{
+            		ObjEnemy_SetIntersectionCircleToShot(objSTGE, ObjMove_GetX(objSTGE), ObjMove_GetY(objSTGE), 32);
+			if(count == 20)
+			{
+				TShot; 
+				count = 0;
+			}
+            		if (ObjMove_GetX(objSTGE) < Xmin || ObjMove_GetX(objSTGE) > Xmax || ObjMove_GetY(objSTGE) < Ymin || ObjMove_GetY(objSTGE) > Ymax) { ObjEnemy_SetLife(objSTGE, -1000); }
+
+			let ex = ObjMove_GetX(objSTGE);
+			let ey = ObjMove_GetY(objSTGE);
+
+			let px = GetPlayerX();
+			let py = GetPlayerY();
+
+			let a = atan2(py - ey, px - ex);
+
+			let rad = (px - ex) / cos(a);
+			
+			if(rad < 60){ ObjEnemy_SetLife(objSTGE, -1000); }
+            		count++;
+           		yield;
+            	}
+		task TShot
+		{
+			if(!Obj_IsDeleted(objSTGE))
+			{
+				let ex = ObjMove_GetX(objSTGE);
+				let ey = ObjMove_GetY(objSTGE);
+
+				let px = GetPlayerX();
+				let py = GetPlayerY();
+
+				let angle = atan2(py - ey, px - ex) - 20;
+
+				loop(3)
+				{
+					let obj = CreateShotA1(ex + cos(angle) * 6, ey + sin(angle) * 6, 3, angle, 69, 5);
+					angle += 20;
+				}
+			}
+		}
+
+        }
+
+	task TMove
+	{
+		loop(60){ yield; }
+		ObjMove_SetAngle(objSTGE, angle);
+	}
+
+    	task TFinalize 
+	{
+        	while(ObjEnemy_GetInfo(objSTGE, INFO_LIFE) > 0) {yield;}
+		if(ObjMove_GetX(objSTGE) < Xmin || ObjMove_GetX(objSTGE) > Xmax || ObjMove_GetY(objSTGE) < Ymin || ObjMove_GetY(objSTGE) > Ymax) { yield; }
+		else
+		{
+			LoadSound(GetCurrentScriptDirectory ~ "./../se/Enep1.wav");
+			PlaySE(GetCurrentScriptDirectory ~ "./../se/Enep1.wav");
+			EnemyExplosionEffect(objSTGE, [255, 100, 150], [255, 100, 150]);
+			AddScore(100);
+			loop(1)
+			{
+				SeasoningItem(ObjMove_GetX(objSTGE), ObjMove_GetY(objSTGE), rand(260, 280), "Petal");
+				SeasoningItem(ObjMove_GetX(objSTGE), ObjMove_GetY(objSTGE), rand(260, 280), "Leaf");
+			}
+		}
+        	Obj_Delete(objSTGE);
+
+    	}
+}
+
+task CreateSTGEnemy7(x, y , angle)
+{
+	let count = 0;
+	let Xmin = -10;
+	let Xmax = GetStgFrameWidth + 10;
+	let Ymin = -10; 
+	let Ymax = GetStgFrameHeight + 10;
+	let objSTGE;
+	TInitialize;
+
+	task TInitialize
+	{
+        	objSTGE = ObjEnemy_Create(OBJ_ENEMY);
+        	ObjEnemy_Regist(objSTGE);
+        	ObjEnemy_SetLife(objSTGE, 60 * 1.5);
+		renderFairyK(objSTGE,3);
+        	ObjMove_SetPosition(objSTGE, x, y);
+		TMove;
+       		//TDrawLoop(objSTGE);
+        	TMainLoop;
+        	TFinalize;
+    	}
+	task TMove
+	{
+		ObjMove_SetSpeed(objSTGE, 2.5);
+		ObjMove_SetAngle(objSTGE, 90);
+		loop(40){ yield; }
+		ObjMove_SetSpeed(objSTGE, 0);
+		loop(60){ yield; }
+		ObjMove_SetAngle(objSTGE, angle);
+		ObjMove_SetSpeed(objSTGE, 2);
+	}
+	task TMainLoop 
+	{
+		while(ObjEnemy_GetInfo(objSTGE, INFO_LIFE) > 0)
+		{
+            		ObjEnemy_SetIntersectionCircleToShot(objSTGE, ObjMove_GetX(objSTGE), ObjMove_GetY(objSTGE), 32);
+			if(count == 60)
+			{
+				TShot; 
+				count = 20;
+			}
+            		if (ObjMove_GetX(objSTGE) < Xmin || ObjMove_GetX(objSTGE) > Xmax || ObjMove_GetY(objSTGE) < Ymin || ObjMove_GetY(objSTGE) > Ymax) { ObjEnemy_SetLife(objSTGE, -1000); }
+
+			let ex = ObjMove_GetX(objSTGE);
+			let ey = ObjMove_GetY(objSTGE);
+
+			let px = GetPlayerX();
+			let py = GetPlayerY();
+
+			let a = atan2(py - ey, px - ex);
+
+			let rad = (px - ex) / cos(a);
+			
+			if(rad < 60){ ObjEnemy_SetLife(objSTGE, -1000); }
+            		count++;
+           		yield;
+            	}
+		task TShot
+		{
+			if(!Obj_IsDeleted(objSTGE))
+			{
+			let ex = ObjMove_GetX(objSTGE);
+			let ey = ObjMove_GetY(objSTGE);
+
+			let angle1 = rand(1, 360);
+			loop(5)
+			{
+
+				loop(18)
+				{
+					let obj = CreateShotA1(ex, ey, 2, angle1, 21, 2);
+					ObjMove_SetAngularVelocity(obj, 0.5);
+					angle1 += 20;
+				}
+				angle1 += 13;
+				loop(18)
+				{
+					let obj = CreateShotA1(ex, ey, 2, angle1 + 10, 21, 2);
+					ObjMove_SetAngularVelocity(obj, -0.5);
+					angle1 += 20;
+				}
+				angle1 += 13;
+				loop(5){ yield; }
+
+			}
+			}
+		}
+
+        }
+    	task TFinalize 
+	{
+        	while(ObjEnemy_GetInfo(objSTGE, INFO_LIFE) > 0) {yield;}
+		if(ObjMove_GetX(objSTGE) < Xmin || ObjMove_GetX(objSTGE) > Xmax || ObjMove_GetY(objSTGE) < Ymin || ObjMove_GetY(objSTGE) > Ymax) { yield; }
+		else
+		{
+			LoadSound(GetCurrentScriptDirectory ~ "./../se/Enep1.wav");
+			PlaySE(GetCurrentScriptDirectory ~ "./../se/Enep1.wav");
+			EnemyExplosionEffect(objSTGE, [255, 100, 150], [255, 100, 150]);
+			AddScore(800);
+			loop(8)
+			{
+				SeasoningItem(ObjMove_GetX(objSTGE), ObjMove_GetY(objSTGE), rand(260, 280), "Petal");
+				SeasoningItem(ObjMove_GetX(objSTGE), ObjMove_GetY(objSTGE), rand(260, 280), "Leaf");
+			}
+		}
+        	Obj_Delete(objSTGE);
+	}
+}
+
+task CreateSTGEnemy8(x, y, angle)
+{
+	let count = 0;
+	let Xmin = -32;
+	let Xmax = GetStgFrameWidth + 32;
+	let Ymin = -32; 
+	let Ymax = GetStgFrameHeight + 32;
+	let objSTGE;
+	TInitialize;
+
+	task TInitialize
+	{
+        	objSTGE = ObjEnemy_Create(OBJ_ENEMY);
+        	ObjEnemy_Regist(objSTGE);
+        	ObjEnemy_SetLife(objSTGE, 60);
+		renderFairyD(objSTGE, 1);
+        	ObjMove_SetPosition(objSTGE, x, y);
+        	ObjMove_SetAngle(objSTGE, angle);
+       		ObjMove_SetSpeed(objSTGE, 2.3);
+       		//TDrawLoop(objSTGE);
+        	TMainLoop;
+        	TFinalize;
+    	}
+
+	task TMainLoop 
+	{
+		while(ObjEnemy_GetInfo(objSTGE, INFO_LIFE) > 0)
+		{
+            		ObjEnemy_SetIntersectionCircleToShot(objSTGE, ObjMove_GetX(objSTGE), ObjMove_GetY(objSTGE), 32);
+			if(count == 15)
+			{
+				TShot; 
+				count = -30;
+			}
+            		if (ObjMove_GetX(objSTGE) < Xmin || ObjMove_GetX(objSTGE) > Xmax || ObjMove_GetY(objSTGE) < Ymin || ObjMove_GetY(objSTGE) > Ymax) { ObjEnemy_SetLife(objSTGE, -1000); }
+
+			let ex = ObjMove_GetX(objSTGE);
+			let ey = ObjMove_GetY(objSTGE);
+
+			let px = GetPlayerX();
+			let py = GetPlayerY();
+
+			let a = atan2(py - ey, px - ex);
+
+			let rad = (px - ex) / cos(a);
+			
+			if(rad < 60){ ObjEnemy_SetLife(objSTGE, -1000); }
+            		count++;
+           		yield;
+            	}
+		task TShot
+		{
+			loop(2)
+			{
+				if(!Obj_IsDeleted(objSTGE))
+				{
+					let ex = ObjMove_GetX(objSTGE);
+					let ey = ObjMove_GetY(objSTGE);
+
+					let px = GetPlayerX();
+					let py = GetPlayerY();
+
+					let angle = atan2(py - ey, px - ex) - 1;
+
+					let sp = 2;
+					loop(3)
+					{
+						let obj = CreateShotA1(ex + cos(angle) * 6, ey + sin(angle) * 6, sp, angle, 55, 5);
+						sp -= 0.3;
+					}
+
+					loop(25){ yield; }
+				}
+			}
+			if(!Obj_IsDeleted(objSTGE))
+			{
+				let ex = ObjMove_GetX(objSTGE);
+				let ey = ObjMove_GetY(objSTGE);
+
+				let px = GetPlayerX();
+				let py = GetPlayerY();
+
+				let angle = atan2(py - ey, px - ex);
+
+				loop(15)
+				{
+					CreateShotA1(ex, ey, 3, angle, 85, 0);
+					angle += 24;
+				}
+			}
+		}
+        }
+
+    	task TFinalize 
+	{
+        	while(ObjEnemy_GetInfo(objSTGE, INFO_LIFE) > 0) {yield;}
+		if(ObjMove_GetX(objSTGE) < Xmin || ObjMove_GetX(objSTGE) > Xmax || ObjMove_GetY(objSTGE) < Ymin || ObjMove_GetY(objSTGE) > Ymax) { yield; }
+		else
+		{
+			LoadSound(GetCurrentScriptDirectory ~ "./../se/Enep1.wav");
+			PlaySE(GetCurrentScriptDirectory ~ "./../se/Enep1.wav");
+			EnemyExplosionEffect(objSTGE, [255, 100, 150], [255, 100, 150]);
+			AddScore(100);
+			loop(1)
+			{
+				SeasoningItem(ObjMove_GetX(objSTGE), ObjMove_GetY(objSTGE), rand(260, 280), "Petal");
+				SeasoningItem(ObjMove_GetX(objSTGE), ObjMove_GetY(objSTGE), rand(260, 280), "Leaf");
+			}
+		}
+        	Obj_Delete(objSTGE);
+
+    	}
+}
+
+task CreateSTGEnemy9(x, y, angle)
+{
+	let count = 0;
+	let Xmin = -32;
+	let Xmax = GetStgFrameWidth + 32;
+	let Ymin = -32; 
+	let Ymax = GetStgFrameHeight + 32;
+	let objSTGE;
+	TInitialize;
+
+	task TInitialize
+	{
+        	objSTGE = ObjEnemy_Create(OBJ_ENEMY);
+        	ObjEnemy_Regist(objSTGE);
+        	ObjEnemy_SetLife(objSTGE, 60 * 1.5);
+		renderFairyA(objSTGE, 2);
+        	ObjMove_SetPosition(objSTGE, x, y);
+        	ObjMove_SetAngle(objSTGE, angle);
+       		ObjMove_SetSpeed(objSTGE, 2.5);
+       		//TDrawLoop(objSTGE);
+        	TMainLoop;
+        	TFinalize;
+    	}
+
+	task TMainLoop 
+	{
+		while(ObjEnemy_GetInfo(objSTGE, INFO_LIFE) > 0)
+		{
+            		ObjEnemy_SetIntersectionCircleToShot(objSTGE, ObjMove_GetX(objSTGE), ObjMove_GetY(objSTGE), 32);
+			if(count == 30)
+			{
+				TShot; 
+				count = -10;
+			}
+            		if (ObjMove_GetX(objSTGE) < Xmin || ObjMove_GetX(objSTGE) > Xmax || ObjMove_GetY(objSTGE) < Ymin || ObjMove_GetY(objSTGE) > Ymax) { ObjEnemy_SetLife(objSTGE, -1000); }
+
+			let ex = ObjMove_GetX(objSTGE);
+			let ey = ObjMove_GetY(objSTGE);
+
+			let px = GetPlayerX();
+			let py = GetPlayerY();
+
+			let a = atan2(py - ey, px - ex);
+
+			let rad = (px - ex) / cos(a);
+			
+			if(rad < 60){ ObjEnemy_SetLife(objSTGE, -1000); }
+            		count++;
+           		yield;
+            	}
+		task TShot
+		{
+			if(!Obj_IsDeleted(objSTGE))
+			{
+				let ex = ObjMove_GetX(objSTGE);
+				let ey = ObjMove_GetY(objSTGE);
+
+				let px = GetPlayerX();
+				let py = GetPlayerY();
+
+				let angle = atan2(py - ey, px - ex) - 16;
+
+				loop(5)
+				{
+					let obj = CreateShotA1(ex + cos(angle) * 6, ey + sin(angle) * 6, 2, angle, 23, 5);
+					angle += 8;
+				}
+				loop(15){ yield; }
+			}
+		}
+        }
+
+    	task TFinalize 
+	{
+        	while(ObjEnemy_GetInfo(objSTGE, INFO_LIFE) > 0) {yield;}
+		if(ObjMove_GetX(objSTGE) < Xmin || ObjMove_GetX(objSTGE) > Xmax || ObjMove_GetY(objSTGE) < Ymin || ObjMove_GetY(objSTGE) > Ymax) { yield; }
+		else
+		{
+			LoadSound(GetCurrentScriptDirectory ~ "./../se/Enep1.wav");
+			PlaySE(GetCurrentScriptDirectory ~ "./../se/Enep1.wav");
+			EnemyExplosionEffect(objSTGE, [255, 100, 150], [255, 100, 150]);
+			AddScore(300);
+			loop(3)
+			{
+				SeasoningItem(ObjMove_GetX(objSTGE), ObjMove_GetY(objSTGE), rand(260, 280), "Petal");
+				SeasoningItem(ObjMove_GetX(objSTGE), ObjMove_GetY(objSTGE), rand(260, 280), "Leaf");
+			}
+		}
+        	Obj_Delete(objSTGE);
+
+    	}
+}
+
+task CreateSTGEnemy10(x, y, type)
+{
+	let count = 0;
+	let Xmin = -10;
+	let Xmax = GetStgFrameWidth + 10;
+	let Ymin = -10; 
+	let Ymax = GetStgFrameHeight + 10;
+	let objSTGE;
+	TInitialize;
+
+	task TInitialize
+	{
+        	objSTGE = ObjEnemy_Create(OBJ_ENEMY);
+        	ObjEnemy_Regist(objSTGE);
+        	ObjEnemy_SetLife(objSTGE, 60 * 1.5);
+		renderFairyJ(objSTGE,4);
+        	ObjMove_SetPosition(objSTGE, x, y);
+		TMove;
+		TShot;
+       		//TDrawLoop(objSTGE);
+        	TMainLoop;
+        	TFinalize;
+    	}
+	task TMove
+	{
+		ObjMove_SetSpeed(objSTGE, 3.5);
+		ObjMove_SetAngle(objSTGE, 90);
+		loop(40){ yield; }
+		ObjMove_SetSpeed(objSTGE, 0);
+	}
+	task TMainLoop 
+	{
+		while(ObjEnemy_GetInfo(objSTGE, INFO_LIFE) > 0)
+		{
+            		ObjEnemy_SetIntersectionCircleToShot(objSTGE, ObjMove_GetX(objSTGE), ObjMove_GetY(objSTGE), 32);
+            		if (ObjMove_GetX(objSTGE) < Xmin || ObjMove_GetX(objSTGE) > Xmax || ObjMove_GetY(objSTGE) < Ymin || ObjMove_GetY(objSTGE) > Ymax) { ObjEnemy_SetLife(objSTGE, -1000); }
+
+			let ex = ObjMove_GetX(objSTGE);
+			let ey = ObjMove_GetY(objSTGE);
+
+			let px = GetPlayerX();
+			let py = GetPlayerY();
+
+			let a = atan2(py - ey, px - ex);
+
+			let rad = (px - ex) / cos(a);
+			
+			if(rad < 60){ ObjEnemy_SetLife(objSTGE, -1000); }
+            		count++;
+           		yield;
+            	}
+	}
+
+	task TShot
+	{
+		let angle = rand(1, 360);
+
+		loop(65)
+		{
+			if(!Obj_IsDeleted(objSTGE))
+			{
+				loop(5)
+				{
+					let ex = ObjMove_GetX(objSTGE);
+					let ey = ObjMove_GetY(objSTGE);
+					let obj = CreateShotA1(ex, ey, 2, angle, 53, 5);
+					let obj1 = CreateShotA1(ex, ey, 2.5, angle, 53, 5);
+					ObjMove_SetAngularVelocity(obj, -0.1);
+					ObjMove_SetAngularVelocity(obj1, 0.4);
+					if(type == 2)
+					{
+						let obj2 = CreateShotA1(ex, ey, 1.5, angle + 2, 53, 5);
+						let obj3 = CreateShotA1(ex, ey, 2, angle - 2, 53, 5);
+						ObjMove_SetAngularVelocity(obj2, -0.3);
+						ObjMove_SetAngularVelocity(obj3, 0.1);
+					}
+					angle += 72;
+				}
+				angle += 5;
+				loop(3){ yield; }
+			}
+		}
+		loop(20){ yield; }
+		ObjEnemy_SetLife(objSTGE, -1000);
+	}
+
+    	task TFinalize 
+	{
+        	while(ObjEnemy_GetInfo(objSTGE, INFO_LIFE) > 0) {yield;}
+		if(ObjMove_GetX(objSTGE) < Xmin || ObjMove_GetX(objSTGE) > Xmax || ObjMove_GetY(objSTGE) < Ymin || ObjMove_GetY(objSTGE) > Ymax) { yield; }
+		else
+		{
+			LoadSound(GetCurrentScriptDirectory ~ "./../se/Enep1.wav");
+			PlaySE(GetCurrentScriptDirectory ~ "./../se/Enep1.wav");
+			EnemyExplosionEffect(objSTGE, [255, 100, 150], [255, 100, 150]);
+			AddScore(800);
+			loop(5)
+			{
+				SeasoningItem(ObjMove_GetX(objSTGE), ObjMove_GetY(objSTGE), rand(260, 280), "Petal");
+				SeasoningItem(ObjMove_GetX(objSTGE), ObjMove_GetY(objSTGE), rand(260, 280), "Leaf");
+			}
+		}
+        	Obj_Delete(objSTGE);
+	}
+}
+
+task CreateSTGEnemy11(x, y, a)
+{
+	let count = 0;
+	let Xmin = -32;
+	let Xmax = GetStgFrameWidth + 32;
+	let Ymin = -32; 
+	let Ymax = GetStgFrameHeight + 32;
+	let objSTGE;
+	TInitialize;
+
+	task TInitialize
+	{
+        	objSTGE = ObjEnemy_Create(OBJ_ENEMY);
+        	ObjEnemy_Regist(objSTGE);
+        	ObjEnemy_SetLife(objSTGE, 60);
+		renderFairyJ(objSTGE, 1);
+        	ObjMove_SetPosition(objSTGE, x, y);
+        	TMove;
+       		//TDrawLoop(objSTGE);
+        	TMainLoop;
+        	TFinalize;
+    	}
+	task TMainLoop 
+	{
+		while(ObjEnemy_GetInfo(objSTGE, INFO_LIFE) > 0)
+		{
+            		ObjEnemy_SetIntersectionCircleToShot(objSTGE, ObjMove_GetX(objSTGE), ObjMove_GetY(objSTGE), 32);
+            		if (ObjMove_GetX(objSTGE) < Xmin || ObjMove_GetX(objSTGE) > Xmax || ObjMove_GetY(objSTGE) < Ymin || ObjMove_GetY(objSTGE) > Ymax) { ObjEnemy_SetLife(objSTGE, -1000); }
+
+			let ex = ObjMove_GetX(objSTGE);
+			let ey = ObjMove_GetY(objSTGE);
+
+			let px = GetPlayerX();
+			let py = GetPlayerY();
+
+			let a = atan2(py - ey, px - ex);
+
+			let rad = (px - ex) / cos(a);
+			
+			if(rad < 60){ ObjEnemy_SetLife(objSTGE, -1000); }
+
+			if(count == 30)
+			{
+				TShot;
+				count = 0;
+			}
+            		count++;
+           		yield;
+            	}
+		task TShot
+		{	
+			let ex = ObjMove_GetX(objSTGE);
+			let ey = ObjMove_GetY(objSTGE);
+	
+			let px = GetPlayerX();
+			let py = GetPlayerY();
+
+			let angle1 = atan2(py - ey, px - ex);
+			if(!Obj_IsDeleted(objSTGE))
+			{
+				loop(12)
+				{
+					let obj = CreateShotA1(ex, ey, 3, angle1, 85, 2);
+					ObjMove_AddPatternA1(obj, 7, 0, NO_CHANGE);
+					ObjMove_AddPatternA1(obj, 26, 2, NO_CHANGE);
+					angle1 += 30;
+				}
+			}
+		}
+	}
+
+	task TMove
+	{
+		ObjMove_SetSpeed(objSTGE, 2);
+		ObjMove_SetAngle(objSTGE, 90);
+		loop(100){ yield; }
+		ObjMove_SetSpeed(objSTGE, 0);
+		loop(30){ yield; }
+		ObjMove_SetSpeed(objSTGE, 1);
+		ObjMove_SetAngle(objSTGE, a);
+	}
+
+    	task TFinalize 
+	{
+        	while(ObjEnemy_GetInfo(objSTGE, INFO_LIFE) > 0) {yield;}
+		if(ObjMove_GetX(objSTGE) < Xmin || ObjMove_GetX(objSTGE) > Xmax || ObjMove_GetY(objSTGE) < Ymin || ObjMove_GetY(objSTGE) > Ymax) { yield; }
+		else
+		{
+			LoadSound(GetCurrentScriptDirectory ~ "./../se/Enep1.wav");
+			PlaySE(GetCurrentScriptDirectory ~ "./../se/Enep1.wav");
+			EnemyExplosionEffect(objSTGE, [255, 100, 150], [255, 100, 150]);
+			AddScore(300);
+			loop(3)
+			{
+				SeasoningItem(ObjMove_GetX(objSTGE), ObjMove_GetY(objSTGE), rand(260, 280), "Petal");
+				SeasoningItem(ObjMove_GetX(objSTGE), ObjMove_GetY(objSTGE), rand(260, 280), "Leaf");
+			}
+		}
+        	Obj_Delete(objSTGE);
+    	}
+}
+
+task CreateSTGEnemy12(x, y, angle, angle1)
+{
+	let count = 0;
+	let Xmin = -32;
+	let Xmax = GetStgFrameWidth + 32;
+	let Ymin = -32; 
+	let Ymax = GetStgFrameHeight + 32;
+	let objSTGE;
+	TInitialize;
+
+	task TInitialize
+	{
+        	objSTGE = ObjEnemy_Create(OBJ_ENEMY);
+        	ObjEnemy_Regist(objSTGE);
+        	ObjEnemy_SetLife(objSTGE, 60);
+		renderFairyF(objSTGE, 3);
+        	ObjMove_SetPosition(objSTGE, x, y);
+       		ObjMove_SetSpeed(objSTGE, 2);
+       		//TDrawLoop(objSTGE);
+		TMove;
+        	TMainLoop;
+        	TFinalize;
+    	}
+
+	task TMainLoop 
+	{
+		while(ObjEnemy_GetInfo(objSTGE, INFO_LIFE) > 0)
+		{
+            		ObjEnemy_SetIntersectionCircleToShot(objSTGE, ObjMove_GetX(objSTGE), ObjMove_GetY(objSTGE), 32);
+			if(count == 60)
+			{
+				TShot; 
+				count = 15;
+			}
+            		if (ObjMove_GetX(objSTGE) < Xmin || ObjMove_GetX(objSTGE) > Xmax || ObjMove_GetY(objSTGE) < Ymin || ObjMove_GetY(objSTGE) > Ymax) { ObjEnemy_SetLife(objSTGE, -1000); }
+
+			let ex = ObjMove_GetX(objSTGE);
+			let ey = ObjMove_GetY(objSTGE);
+
+			let px = GetPlayerX();
+			let py = GetPlayerY();
+
+			let a = atan2(py - ey, px - ex);
+
+			let rad = (px - ex) / cos(a);
+			
+			if(rad < 60){ ObjEnemy_SetLife(objSTGE, -1000); }
+            		count++;
+           		yield;
+            	}
+		task TShot
+		{
+			if(!Obj_IsDeleted(objSTGE))
+			{
+				let ex = ObjMove_GetX(objSTGE);
+				let ey = ObjMove_GetY(objSTGE);
+
+				let px = GetPlayerX();
+				let py = GetPlayerY();
+
+				let angle = atan2(py - ey, px - ex) - 60;
+
+				loop(3)
+				{
+					let obj = CreateShotA1(ex + cos(angle) * 6, ey + sin(angle) * 6, 2, angle, 69, 5);
+					angle += 60;
+				}
+			}
+		}
+
+        }
+
+	task TMove
+	{
+		ObjMove_SetAngle(objSTGE, angle);
+		loop(194){ yield; }
+		ObjMove_SetAngle(objSTGE, angle1);
+	}
+
+    	task TFinalize 
+	{
+        	while(ObjEnemy_GetInfo(objSTGE, INFO_LIFE) > 0) {yield;}
+		if(ObjMove_GetX(objSTGE) < Xmin || ObjMove_GetX(objSTGE) > Xmax || ObjMove_GetY(objSTGE) < Ymin || ObjMove_GetY(objSTGE) > Ymax) { yield; }
+		else
+		{
+			LoadSound(GetCurrentScriptDirectory ~ "./../se/Enep1.wav");
+			PlaySE(GetCurrentScriptDirectory ~ "./../se/Enep1.wav");
+			EnemyExplosionEffect(objSTGE, [255, 100, 150], [255, 100, 150]);
+			AddScore(100);
+			loop(1)
+			{
+				SeasoningItem(ObjMove_GetX(objSTGE), ObjMove_GetY(objSTGE), rand(260, 280), "Petal");
+				SeasoningItem(ObjMove_GetX(objSTGE), ObjMove_GetY(objSTGE), rand(260, 280), "Leaf");
+			}
+		}
+        	Obj_Delete(objSTGE);
+
+    	}
+}
+
+task CreateSTGEnemy13(x, y, angle, angle1)
+{
+	CreateSTGEnemy13A(x, y, angle, angle1);
+	loop(20){ yield; }
+	CreateSTGEnemy13B(x, y, angle, angle1, 1);
+	loop(20){ yield; }
+	CreateSTGEnemy13B(x, y, angle, angle1, 2);
+	loop(20){ yield; }
+	CreateSTGEnemy13B(x, y, angle, angle1, 3);
+	loop(20){ yield; }
+	CreateSTGEnemy13B(x, y, angle, angle1, 4);
+	loop(20){ yield; }
+	CreateSTGEnemy13B(x, y, angle, angle1, 5);
+}
+
+task CreateSTGEnemy13A(x, y, angle, angle1)
+{
+	let count = 0;
+	let Xmin = -32;
+	let Xmax = GetStgFrameWidth + 32;
+	let Ymin = -32; 
+	let Ymax = GetStgFrameHeight + 32;
+	let objSTGE;
+	TInitialize;
+
+	task TInitialize
+	{
+        	objSTGE = ObjEnemy_Create(OBJ_ENEMY);
+        	ObjEnemy_Regist(objSTGE);
+        	ObjEnemy_SetLife(objSTGE, 180);
+		renderFairyC(objSTGE);
+        	ObjMove_SetPosition(objSTGE, x, y);
+       		ObjMove_SetSpeed(objSTGE, 2);
+       		//TDrawLoop(objSTGE);
+		TMove;
+        	TMainLoop;
+        	TFinalize;
+    	}
+
+	task TMainLoop 
+	{
+		while(ObjEnemy_GetInfo(objSTGE, INFO_LIFE) > 0)
+		{
+            		ObjEnemy_SetIntersectionCircleToShot(objSTGE, ObjMove_GetX(objSTGE), ObjMove_GetY(objSTGE), 32);
+			if(count == 30)
+			{
+				TShot;
+				count = 5;
+			}
+            		if (ObjMove_GetX(objSTGE) < Xmin || ObjMove_GetX(objSTGE) > Xmax || ObjMove_GetY(objSTGE) < Ymin || ObjMove_GetY(objSTGE) > Ymax) { ObjEnemy_SetLife(objSTGE, -1000); }
+
+			let ex = ObjMove_GetX(objSTGE);
+			let ey = ObjMove_GetY(objSTGE);
+
+			let px = GetPlayerX();
+			let py = GetPlayerY();
+
+			let a = atan2(py - ey, px - ex);
+
+			let rad = (px - ex) / cos(a);
+			
+			if(rad < 60){ ObjEnemy_SetLife(objSTGE, -1000); }
+            		count++;
+           		yield;
+            	}
+		task TShot
+		{
+			if(!Obj_IsDeleted(objSTGE))
+			{
+				let ex = ObjMove_GetX(objSTGE);
+				let ey = ObjMove_GetY(objSTGE);
+
+				let angle = 50;
+
+				loop(5)
+				{
+					let obj = CreateShotA1(ex + cos(angle) * 6, ey + sin(angle) * 6, 2.5, angle, 309, 5);
+					angle += 20;
+				}
+			}
+		}
+
+        }
+
+	task TMove
+	{
+		ObjMove_SetAngle(objSTGE, angle);
+		loop(194){ yield; }
+		ObjMove_SetAngle(objSTGE, angle1);
+	}
+
+    	task TFinalize 
+	{
+        	while(ObjEnemy_GetInfo(objSTGE, INFO_LIFE) > 0) {yield;}
+		if(ObjMove_GetX(objSTGE) < Xmin || ObjMove_GetX(objSTGE) > Xmax || ObjMove_GetY(objSTGE) < Ymin || ObjMove_GetY(objSTGE) > Ymax) { yield; }
+		else
+		{
+			LoadSound(GetCurrentScriptDirectory ~ "./../se/Enep1.wav");
+			PlaySE(GetCurrentScriptDirectory ~ "./../se/Enep1.wav");
+			EnemyExplosionEffect(objSTGE, [255, 100, 150], [255, 100, 150]);
+			AddScore(100);
+			loop(10)
+			{
+				SeasoningItem(ObjMove_GetX(objSTGE), ObjMove_GetY(objSTGE), rand(260, 280), "Petal");
+				SeasoningItem(ObjMove_GetX(objSTGE), ObjMove_GetY(objSTGE), rand(260, 280), "Leaf");
+			}
+		}
+        	Obj_Delete(objSTGE);
+
+    	}
+}
+
+task CreateSTGEnemy13B(x, y, angle, angle1, type)
+{
+	let count = 0;
+	let Xmin = -32;
+	let Xmax = GetStgFrameWidth + 32;
+	let Ymin = -32; 
+	let Ymax = GetStgFrameHeight + 32;
+	let objSTGE;
+	TInitialize;
+
+	task TInitialize
+	{
+        	objSTGE = ObjEnemy_Create(OBJ_ENEMY);
+        	ObjEnemy_Regist(objSTGE);
+        	ObjEnemy_SetLife(objSTGE, 60);
+		renderFairyD(objSTGE, type);
+        	ObjMove_SetPosition(objSTGE, x, y);
+       		ObjMove_SetSpeed(objSTGE, 2);
+       		//TDrawLoop(objSTGE);
+		TMove;
+        	TMainLoop;
+        	TFinalize;
+    	}
+
+	task TMainLoop 
+	{
+		while(ObjEnemy_GetInfo(objSTGE, INFO_LIFE) > 0)
+		{
+            		ObjEnemy_SetIntersectionCircleToShot(objSTGE, ObjMove_GetX(objSTGE), ObjMove_GetY(objSTGE), 32);
+			if(count == 40)
+			{
+				TShot; 
+				count = 10;
+			}
+            		if (ObjMove_GetX(objSTGE) < Xmin || ObjMove_GetX(objSTGE) > Xmax || ObjMove_GetY(objSTGE) < Ymin || ObjMove_GetY(objSTGE) > Ymax) { ObjEnemy_SetLife(objSTGE, -1000); }
+
+			let ex = ObjMove_GetX(objSTGE);
+			let ey = ObjMove_GetY(objSTGE);
+
+			let px = GetPlayerX();
+			let py = GetPlayerY();
+
+			let a = atan2(py - ey, px - ex);
+
+			let rad = (px - ex) / cos(a);
+			
+			if(rad < 60){ ObjEnemy_SetLife(objSTGE, -1000); }
+            		count++;
+           		yield;
+            	}
+		task TShot
+		{
+			if(!Obj_IsDeleted(objSTGE))
+			{
+				let ex = ObjMove_GetX(objSTGE);
+				let ey = ObjMove_GetY(objSTGE);
+
+				let px = GetPlayerX();
+				let py = GetPlayerY();
+
+				let angle = atan2(py - ey, px - ex) - 60;
+
+				loop(3)
+				{
+					let obj = CreateShotA1(ex + cos(angle) * 6, ey + sin(angle) * 6, 1.75, angle, 5, 5);
+					angle += 60;
+				}
+			}
+		}
+
+        }
+
+	task TMove
+	{
+		ObjMove_SetAngle(objSTGE, angle);
+		loop(194){ yield; }
+		ObjMove_SetAngle(objSTGE, angle1);
+	}
+
+    	task TFinalize 
+	{
+        	while(ObjEnemy_GetInfo(objSTGE, INFO_LIFE) > 0) {yield;}
+		if(ObjMove_GetX(objSTGE) < Xmin || ObjMove_GetX(objSTGE) > Xmax || ObjMove_GetY(objSTGE) < Ymin || ObjMove_GetY(objSTGE) > Ymax) { yield; }
+		else
+		{
+			LoadSound(GetCurrentScriptDirectory ~ "./../se/Enep1.wav");
+			PlaySE(GetCurrentScriptDirectory ~ "./../se/Enep1.wav");
+			EnemyExplosionEffect(objSTGE, [255, 100, 150], [255, 100, 150]);
+			AddScore(100);
+			loop(1)
+			{
+				SeasoningItem(ObjMove_GetX(objSTGE), ObjMove_GetY(objSTGE), rand(260, 280), "Petal");
+				SeasoningItem(ObjMove_GetX(objSTGE), ObjMove_GetY(objSTGE), rand(260, 280), "Leaf");
+			}
+		}
+        	Obj_Delete(objSTGE);
+
+    	}
+}
+
+task CreateSTGEnemy14(x, y, type, angle)
+{
+	let count = 0;
+	let Xmin = -32;
+	let Xmax = GetStgFrameWidth + 32;
+	let Ymin = -32; 
+	let Ymax = GetStgFrameHeight + 32;
+	let objSTGE;
+	TInitialize;
+
+	task TInitialize
+	{
+        	objSTGE = ObjEnemy_Create(OBJ_ENEMY);
+        	ObjEnemy_Regist(objSTGE);
+        	ObjEnemy_SetLife(objSTGE, 60 * 1.5);
+		renderFairyA(objSTGE, type);
+        	ObjMove_SetPosition(objSTGE, x, y);
+		TMove;
+       		//TDrawLoop(objSTGE);
+        	TMainLoop;
+        	TFinalize;
+    	}
+	task TMove
+	{
+		ObjMove_SetSpeed(objSTGE, 2);
+		ObjMove_SetAngle(objSTGE, 90);
+		loop(30){ yield; }
+		ObjMove_SetSpeed(objSTGE, 0);
+		loop(20){ yield; }
+		ObjMove_SetAngle(objSTGE, angle);
+		ObjMove_SetSpeed(objSTGE, 2);
+	}
+	task TMainLoop 
+	{
+		while(ObjEnemy_GetInfo(objSTGE, INFO_LIFE) > 0)
+		{
+            		ObjEnemy_SetIntersectionCircleToShot(objSTGE, ObjMove_GetX(objSTGE), ObjMove_GetY(objSTGE), 32);
+			if(count == 40)
+			{
+				TShot; 
+				count = -30;
+			}
+            		if (ObjMove_GetX(objSTGE) < Xmin || ObjMove_GetX(objSTGE) > Xmax || ObjMove_GetY(objSTGE) < Ymin || ObjMove_GetY(objSTGE) > Ymax) { ObjEnemy_SetLife(objSTGE, -1000); }
+
+			let ex = ObjMove_GetX(objSTGE);
+			let ey = ObjMove_GetY(objSTGE);
+
+			let px = GetPlayerX();
+			let py = GetPlayerY();
+
+			let a = atan2(py - ey, px - ex);
+
+			let rad = (px - ex) / cos(a);
+			
+			if(rad < 60){ ObjEnemy_SetLife(objSTGE, -1000); }
+            		count++;
+           		yield;
+            	}
+		task TShot
+		{
+			if(!Obj_IsDeleted(objSTGE))
+			{
+			let ex = ObjMove_GetX(objSTGE);
+			let ey = ObjMove_GetY(objSTGE);
+
+			let px = GetPlayerX();
+			let py = GetPlayerY();
+
+			let angle1 = rand(1, 360);
+			let sp = 1;
+			let fra = 90;
+			loop(5)
+			{
+				loop(20)
+				{
+					if(type == 1)
+					{
+						let obj = CreateShotA1(ex, ey, 1.5, angle1, 364, 2);
+						ObjMove_AddPatternA1(obj, fra, sp, angle1 + 45);
+					}
+					else if(type == 2)
+					{
+						let obj = CreateShotA1(ex, ey, 1.5, angle1, 366, 2);
+						ObjMove_AddPatternA1(obj, fra, sp, angle1 - 45);
+					}
+					angle1 += 18;
+				}
+				loop(8){ yield; }
+				fra -= 8;
+				sp += 0.2;
+				angle1 += 13;
+			}
+			}
+		}
+
+        }
+    	task TFinalize 
+	{
+        	while(ObjEnemy_GetInfo(objSTGE, INFO_LIFE) > 0) {yield;}
+		if(ObjMove_GetX(objSTGE) < Xmin || ObjMove_GetX(objSTGE) > Xmax || ObjMove_GetY(objSTGE) < Ymin || ObjMove_GetY(objSTGE) > Ymax) { yield; }
+		else
+		{
+			LoadSound(GetCurrentScriptDirectory ~ "./../se/Enep1.wav");
+			PlaySE(GetCurrentScriptDirectory ~ "./../se/Enep1.wav");
+			EnemyExplosionEffect(objSTGE, [255, 100, 150], [255, 100, 150]);
+			AddScore(500);
+			loop(5)
+			{
+				SeasoningItem(ObjMove_GetX(objSTGE), ObjMove_GetY(objSTGE), rand(260, 280), "Petal");
+				SeasoningItem(ObjMove_GetX(objSTGE), ObjMove_GetY(objSTGE), rand(260, 280), "Leaf");
+			}
+		}
+        	Obj_Delete(objSTGE);
+	}
+}
+
+task CreateSTGEnemy15(x, y)
+{
+	let count = 0;
+	let Xmin = -32;
+	let Xmax = GetStgFrameWidth + 32;
+	let Ymin = -32; 
+	let Ymax = GetStgFrameHeight + 32;
+	let objSTGE;
+	TInitialize;
+
+	task TInitialize
+	{
+        	objSTGE = ObjEnemy_Create(OBJ_ENEMY);
+        	ObjEnemy_Regist(objSTGE);
+        	ObjEnemy_SetLife(objSTGE, 60);
+		renderFairyE(objSTGE, 6);
+        	ObjMove_SetPosition(objSTGE, x, y);
+       		ObjMove_SetSpeed(objSTGE, 1.75);
+
+		let px = GetPlayerX();
+		let py = GetPlayerY();
+
+		ObjMove_SetAngle(objSTGE, atan2(py - y, px - x));
+       		//TDrawLoop(objSTGE);
+        	TMainLoop;
+        	TFinalize;
+    	}
+	task TMainLoop 
+	{
+		while(ObjEnemy_GetInfo(objSTGE, INFO_LIFE) > 0)
+		{
+            		ObjEnemy_SetIntersectionCircleToShot(objSTGE, ObjMove_GetX(objSTGE), ObjMove_GetY(objSTGE), 32);
+			if(count == 50)
+			{
+				TShot; 
+				count = 0;
+			}
+            		if (ObjMove_GetX(objSTGE) < Xmin || ObjMove_GetX(objSTGE) > Xmax || ObjMove_GetY(objSTGE) < Ymin || ObjMove_GetY(objSTGE) > Ymax) { ObjEnemy_SetLife(objSTGE, -1000); }
+			let ex = ObjMove_GetX(objSTGE);
+			let ey = ObjMove_GetY(objSTGE);
+
+			let px = GetPlayerX();
+			let py = GetPlayerY();
+
+			let a = atan2(py - ey, px - ex);
+
+			let rad = (px - ex) / cos(a);
+			
+			if(rad < 60){ ObjEnemy_SetLife(objSTGE, -1000); } 
+            		count++;
+           		yield;
+            	}
+		task TShot
+		{
+			if(!Obj_IsDeleted(objSTGE))
+			{
+			let ex = ObjMove_GetX(objSTGE);
+			let ey = ObjMove_GetY(objSTGE);
+
+			let px = GetPlayerX();
+			let py = GetPlayerY();
+
+			let angle = atan2(py - ey, px - ex);
+			let sp = 2.5;
+
+			loop(5)
+			{
+				let obj = CreateShotA1(ex + cos(angle) * 6, ey + sin(angle) * 6, sp, angle, 53, 2);
+				sp -= 0.25;
+			}
+			}
+		}
+
+        }
+    	task TFinalize 
+	{
+        	while(ObjEnemy_GetInfo(objSTGE, INFO_LIFE) > 0) {yield;}
+		if(ObjMove_GetX(objSTGE) < Xmin || ObjMove_GetX(objSTGE) > Xmax || ObjMove_GetY(objSTGE) < Ymin || ObjMove_GetY(objSTGE) > Ymax) { yield; }
+		else
+		{
+			LoadSound(GetCurrentScriptDirectory ~ "./../se/Enep1.wav");
+			PlaySE(GetCurrentScriptDirectory ~ "./../se/Enep1.wav");
+			EnemyExplosionEffect(objSTGE, [255, 100, 150], [255, 100, 150]);
+			AddScore(100);
+			loop(1)
+			{
+				SeasoningItem(ObjMove_GetX(objSTGE), ObjMove_GetY(objSTGE), rand(260, 280), "Petal");
+				SeasoningItem(ObjMove_GetX(objSTGE), ObjMove_GetY(objSTGE), rand(260, 280), "Leaf");
+			}
+		}
+        	Obj_Delete(objSTGE);
+    	}
+}
+
+task EnemyExplosionEffect(objEnemy, circlecolor, starcolor)
+{
+	let x = rand(-45, 45);
+	let y = rand(-45, 45);
+	let z = rand(-90, 90);
+	let dir = rand(0, 360);
+	DefaultCircle(objEnemy, 2.0, circlecolor, x, y, z);
+	DefaultCircle(objEnemy, 2.0, circlecolor, x, y+90, z);
+	loop(4)
+	{
+		EnemyExplodeObject(ObjRender_GetX(objEnemy), ObjRender_GetY(objEnemy), rand(2.5,3.5), dir+rand(-10,10), [255,255,255]);
+		EnemyExplodeObject(ObjRender_GetX(objEnemy), ObjRender_GetY(objEnemy), rand(2.5,3.5), dir+rand(-10,10), starcolor);
+		dir+=360/4;
+	}
+
+	task EnemyExplodeObject(x, y, speed, dir, color)
+	{
+		let objStar = ObjPrim_Create(OBJ_SPRITE_2D);
+
+		let alpha = 130;
+		let spinA = rand(0,180);
+		let spinB = rand(0,180);
+		let RED = color[0];
+		let GREEN = color[1];
+		let BLUE = color[2];
+		let scale = 0;
+	
+		ObjRender_SetBlendType(objStar, BLEND_ADD_ARGB);
+		Obj_SetRenderPriorityI(objStar,45);
+		ObjPrim_SetTexture(objStar, GetCurrentScriptDirectory ~ "./Cherry.png");
+		ObjSprite2D_SetSourceRect(objStar, 0, 0, 256, 256);
+		ObjSprite2D_SetDestCenter(objStar);
+		
+		while(!Obj_IsDeleted(objStar)) 
+		{
+			ObjRender_SetPosition(objStar, x, y, 0);
+			ObjRender_SetScaleXYZ(objStar, scale, scale, scale);
+			ObjRender_SetAngleXYZ(objStar, spinA, spinB, spinA);
+			ObjRender_SetAlpha(objStar, alpha);
+			ObjRender_SetColor(objStar, RED*(alpha/255), GREEN*(alpha/255), BLUE*(alpha/255));
+			if(scale < 0.19 && speed > 0){scale += 0.03;}
+			if(speed > 1.0){speed -= 0.094;}
+			if(speed <= 1.0 && alpha > 0){alpha -= 16; scale -= 0.008;}
+			if(alpha <= 0){Obj_Delete(objStar);}
+			spinA += rand(1, 2);
+			spinB += rand(-1, -2);
+			x += speed*cos(dir);
+			y += speed*sin(dir);
+			yield;
+		}
+	}
+	task DefaultCircle(objEnemy, maxscale, color, x, y, z)
+	{
+		let obj = ObjPrim_Create(OBJ_SPRITE_2D);
+	
+		ObjRender_SetBlendType(obj, BLEND_ADD_ARGB);
+		Obj_SetRenderPriorityI(obj, 41);
+		ObjPrim_SetTexture(obj, GetCurrentScriptDirectory ~ "./BurstCircle.png");
+		ObjSprite2D_SetSourceRect(obj, 0, 0, 64, 64);
+		ObjSprite2D_SetDestCenter(obj);
+
+		let alpha = 255;
+		let scale = 0;
+		let dscale = 0.4;
+		
+		ObjRender_SetPosition(obj, ObjRender_GetX(objEnemy), ObjRender_GetY(objEnemy), 0);
+		ObjRender_SetAngleXYZ(obj, x, y, z);
+		ascent(i in 0..20)
+		{
+			scale = maxscale*sin(90*i/20);
+			alpha -= 255/20;
+			ObjRender_SetColor(obj, (alpha/255)*color[0], (alpha/255)*color[1], (alpha/255)*color[2]);
+			ObjRender_SetScaleXYZ(obj, scale, scale, scale);
+			yield;
+		}
+		Obj_Delete(obj);
+	}
+}
